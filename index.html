@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Store</title>
+  <link rel="stylesheet" href="book.css">
+</head>
+<body>
+
+  <header>
+    <h1>📚 BookNest</h1>
+    <input type="text" id="searchInput" placeholder="Search books..." />
+    <div class="cart" onclick="toggleCart()">🛒 Cart: <span id="cart-count">0</span></div>
+  </header>
+
+  <main>
+    <section id="book-list" class="book-list"></section>
+
+    <section id="cart-panel" class="cart-panel hidden">
+      <h2>Your Cart</h2>
+      <ul id="cart-items"></ul>
+      <p><strong>Total: $<span id="cart-total">0.00</span></strong></p>
+    </section>
+  </main>
+
+  <script src="book.js"></script>
+</body>
+</html>
