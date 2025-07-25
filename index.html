@@ -23,7 +23,7 @@
   </header>
 
   <main class="container">
-    <!-- Add this just above the books section inside <main class="container"> -->
+  
 <section class="genre-section" style="margin-top: 24px; text-align:center;">
   <label for="genreSelect" style="font-size:1.1rem; font-weight:500; margin-right:10px;">Select Genre:</label>
   <select id="genreSelect" style="padding:7px 16px; border-radius:5px; font-size:1rem;">
@@ -60,10 +60,9 @@
 </body>
 </html>
 <script>
-// Add this near the top with your other variables
+
 let wishlist = [];
 
-// Render Books with Like (heart) and Wishlist button
 function renderBooks(bookList) {
   booksContainer.innerHTML = "";
   if (bookList.length === 0) {
@@ -99,34 +98,31 @@ function renderBooks(bookList) {
     });
   });
 
-  // Like button logic
   document.querySelectorAll('.like-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const bookId = parseInt(this.getAttribute('data-id'));
       addToWishlist(bookId);
       this.style.color = "#e63946";
       this.disabled = true;
-      // Also disable the "Add to Wishlist" button for this book
+    
       const wishlistBtn = this.parentElement.querySelector('.wishlist-btn');
       if (wishlistBtn) wishlistBtn.disabled = true;
     });
   });
 }
 
-// Add to Wishlist function
 function addToWishlist(id) {
   const book = books.find(b => b.id === id);
   if (!wishlist.some(item => item.id === id)) {
     wishlist.push(book);
     showAddedMessage(`"${book.title}" added to wishlist!`);
-    renderBooks(document.querySelectorAll('.book-card').length ? books : []); // Refresh to disable wishlist/like
-    renderWishlist(); // Update wishlist tab if open
+    renderBooks(document.querySelectorAll('.book-card').length ? books : []); 
+    renderWishlist(); 
   } else {
     showAddedMessage(`"${book.title}" is already in wishlist!`);
   }
 }
 
-// Wishlist tab logic
 const wishlistBtn = document.getElementById('wishlistBtn');
 wishlistBtn.addEventListener('click', () => {
   booksContainer.style.display = "none";
@@ -136,7 +132,6 @@ wishlistBtn.addEventListener('click', () => {
   filterBooks();
 });
 
-// Show wishlist section
 function showWishlistSection() {
   let wishlistSection = document.getElementById('wishlistSection');
   if (!wishlistSection) {
@@ -157,7 +152,6 @@ function showWishlistSection() {
   renderWishlist();
 }
 
-// Render wishlist books
 function renderWishlist() {
   const wishlistSection = document.getElementById('wishlistSection');
   if (!wishlistSection) return;
@@ -183,7 +177,6 @@ function renderWishlist() {
     wishlistSection.appendChild(card);
   });
 
-  // Description toggle logic for wishlist
   wishlistSection.querySelectorAll('.desc-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const descDiv = this.parentElement.querySelector('.book-desc');
@@ -193,14 +186,12 @@ function renderWishlist() {
   });
 }
 
-// Remove from wishlist
 function removeFromWishlist(id) {
   wishlist = wishlist.filter(book => book.id !== id);
   renderWishlist();
   renderBooks(books);
 }
 
-// Hide wishlist section when switching to Home or Cart
 document.querySelectorAll('nav a').forEach(link => {
   if (link.textContent.trim() === "Home") {
     link.addEventListener('click', function(e) {
@@ -224,7 +215,6 @@ cartBtn.addEventListener('click', () => {
   filterBooks();
 });
 
-// Continue Shopping button
 document.getElementById('continueShoppingBtn').onclick = function() {
   cartSection.style.display = "none";
   booksContainer.style.display = "grid";
