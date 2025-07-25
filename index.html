@@ -4,26 +4,233 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Book Store</title>
-  <link rel="stylesheet" href="book.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <header>
-    <h1>📚 BookNest</h1>
-    <input type="text" id="searchInput" placeholder="Search books..." />
-    <div class="cart" onclick="toggleCart()">🛒 Cart: <span id="cart-count">0</span></div>
+    <div class="container nav">
+      <div class="logo">📚 BookNest</div>
+      <nav>
+        <a href="#">Home</a>
+        <a href="about.html" target="_blank">About Us</a>
+        <a href="help.html" target="_blank">Help</a>
+        <a href="#" id="wishlistBtn">Wishlist</a>
+        <input type="text" id="searchInput" placeholder="Search books..." />
+        <span class="cart-btn" id="cartBtn">🛒 Cart (<span id="cartCount">0</span>)</span>
+      </nav>
+    </div>
   </header>
 
-  <main>
-    <section id="book-list" class="book-list"></section>
+  <main class="container">
+    <!-- Add this just above the books section inside <main class="container"> -->
+<section class="genre-section" style="margin-top: 24px; text-align:center;">
+  <label for="genreSelect" style="font-size:1.1rem; font-weight:500; margin-right:10px;">Select Genre:</label>
+  <select id="genreSelect" style="padding:7px 16px; border-radius:5px; font-size:1rem;">
+    <option value="all">All</option>
+    <option value="fictional">Fictional</option>
+    <option value="non-fictional">Non-Fictional</option>
+    <option value="self-development">Self-Development</option>
+    <option value="horror">Horror</option>
+    <option value="biography">Biography</option>
+    <option value="autobiography">Autobiography</option>
+    <option value="money">Money</option>
+    <option value="history">History</option>
+    <option value="spiritual">Spiritual</option>
+  </select>
+</section>
 
-    <section id="cart-panel" class="cart-panel hidden">
-      <h2>Your Cart</h2>
-      <ul id="cart-items"></ul>
-      <p><strong>Total: $<span id="cart-total">0.00</span></strong></p>
+    <section class="books-section" id="booksContainer"></section>
+
+    <section class="cart-section" id="cartSection" style="display: none;">
+      <h2>🛒 Cart Items</h2>
+      <div id="cartItems"></div>
+      <h3>Total: ₹<span id="totalPrice">0</span></h3>
+      <button onclick="checkout()">Checkout</button>
+      <button id="continueShoppingBtn" style="margin-top:10px;">Continue Shopping</button>
     </section>
+
   </main>
 
-  <script src="book.js"></script>
+  <footer>
+  &copy; 2025 BookNest. All rights reserved.
+</footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
+<script>
+// Add this near the top with your other variables
+let wishlist = [];
+
+// Render Books with Like (heart) and Wishlist button
+function renderBooks(bookList) {
+  booksContainer.innerHTML = "";
+  if (bookList.length === 0) {
+    booksContainer.innerHTML = `<div style="grid-column: 1/-1; text-align:center; font-size:1.3rem; color:#888; margin:40px 0;">
+      Will be available soon
+    </div>`;
+    return;
+  }
+  bookList.forEach(book => {
+    const isWishlisted = wishlist.some(item => item.id === book.id);
+    const card = document.createElement('div');
+    card.classList.add('book-card');
+    card.innerHTML = `
+      <img src="${book.image}" alt="${book.title}">
+      <h3 class="book-title">${book.title}</h3>
+      <p class="book-genre"><strong>Genre:</strong> ${book.genre.replace('-', ' ')}</p>
+      <p class="book-author"><strong>Author:</strong> ${book.author}</p>
+      <p class="book-price"><strong>Price:</strong> ₹${book.price}</p>
+      <button onclick="addToCart(${book.id})">Add to Cart</button>
+      <button onclick="addToWishlist(${book.id})" class="wishlist-btn"${isWishlisted ? ' disabled' : ''}>Add to Wishlist</button>
+      <button class="like-btn" data-id="${book.id}" style="background:none;border:none;font-size:1.5rem;cursor:pointer;vertical-align:middle;${isWishlisted ? 'color:#e63946;' : ''}">&#10084;</button>
+      <div class="book-desc" style="display:none; margin-top:10px; color:#444; background:#f7f7f7; border-radius:6px; padding:10px;">${book.description}</div>
+    `;
+    booksContainer.appendChild(card);
+  });
+
+  // Description toggle logic
+  document.querySelectorAll('.desc-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const descDiv = this.parentElement.querySelector('.book-desc');
+      descDiv.style.display = descDiv.style.display === "none" ? "block" : "none";
+      this.textContent = descDiv.style.display === "block" ? "Hide Description" : "View Description";
+    });
+  });
+
+  // Like button logic
+  document.querySelectorAll('.like-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const bookId = parseInt(this.getAttribute('data-id'));
+      addToWishlist(bookId);
+      this.style.color = "#e63946";
+      this.disabled = true;
+      // Also disable the "Add to Wishlist" button for this book
+      const wishlistBtn = this.parentElement.querySelector('.wishlist-btn');
+      if (wishlistBtn) wishlistBtn.disabled = true;
+    });
+  });
+}
+
+// Add to Wishlist function
+function addToWishlist(id) {
+  const book = books.find(b => b.id === id);
+  if (!wishlist.some(item => item.id === id)) {
+    wishlist.push(book);
+    showAddedMessage(`"${book.title}" added to wishlist!`);
+    renderBooks(document.querySelectorAll('.book-card').length ? books : []); // Refresh to disable wishlist/like
+    renderWishlist(); // Update wishlist tab if open
+  } else {
+    showAddedMessage(`"${book.title}" is already in wishlist!`);
+  }
+}
+
+// Wishlist tab logic
+const wishlistBtn = document.getElementById('wishlistBtn');
+wishlistBtn.addEventListener('click', () => {
+  booksContainer.style.display = "none";
+  cartSection.style.display = "none";
+  showWishlistSection();
+  searchInput.value = "";
+  filterBooks();
+});
+
+// Show wishlist section
+function showWishlistSection() {
+  let wishlistSection = document.getElementById('wishlistSection');
+  if (!wishlistSection) {
+    wishlistSection = document.createElement('section');
+    wishlistSection.className = "wishlist-section";
+    wishlistSection.id = "wishlistSection";
+    wishlistSection.style.marginTop = "32px";
+    wishlistSection.style.background = "#f4f8fb";
+    wishlistSection.style.borderRadius = "14px";
+    wishlistSection.style.boxShadow = "0 6px 32px rgba(0,0,0,0.08)";
+    wishlistSection.style.maxWidth = "900px";
+    wishlistSection.style.marginLeft = "auto";
+    wishlistSection.style.marginRight = "auto";
+    wishlistSection.style.padding = "32px 16px";
+    document.querySelector('main.container').appendChild(wishlistSection);
+  }
+  wishlistSection.style.display = "block";
+  renderWishlist();
+}
+
+// Render wishlist books
+function renderWishlist() {
+  const wishlistSection = document.getElementById('wishlistSection');
+  if (!wishlistSection) return;
+  wishlistSection.innerHTML = `<h2 style="text-align:center;color:#e63946;margin-bottom:24px;">❤️ Wishlist</h2>`;
+  if (wishlist.length === 0) {
+    wishlistSection.innerHTML += `<div style="text-align:center; color:#888; font-size:1.2rem;">No books in wishlist yet.</div>`;
+    return;
+  }
+  wishlist.forEach(book => {
+    const card = document.createElement('div');
+    card.classList.add('book-card');
+    card.style.margin = "18px auto";
+    card.style.maxWidth = "350px";
+    card.innerHTML = `
+      <img src="${book.image}" alt="${book.title}">
+      <h3 class="book-title">${book.title}</h3>
+      <p class="book-genre"><strong>Genre:</strong> ${book.genre.replace('-', ' ')}</p>
+      <p class="book-author"><strong>Author:</strong> ${book.author}</p>
+      <p class="book-price"><strong>Price:</strong> ₹${book.price}</p>
+      <button onclick="removeFromWishlist(${book.id})" class="remove-btn" style="background:#dc3545;margin-bottom:10px;">Remove from Wishlist</button>
+      <div class="book-desc" style="display:none; margin-top:10px; color:#444; background:#f7f7f7; border-radius:6px; padding:10px;">${book.description}</div>
+    `;
+    wishlistSection.appendChild(card);
+  });
+
+  // Description toggle logic for wishlist
+  wishlistSection.querySelectorAll('.desc-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const descDiv = this.parentElement.querySelector('.book-desc');
+      descDiv.style.display = descDiv.style.display === "none" ? "block" : "none";
+      this.textContent = descDiv.style.display === "block" ? "Hide Description" : "View Description";
+    });
+  });
+}
+
+// Remove from wishlist
+function removeFromWishlist(id) {
+  wishlist = wishlist.filter(book => book.id !== id);
+  renderWishlist();
+  renderBooks(books);
+}
+
+// Hide wishlist section when switching to Home or Cart
+document.querySelectorAll('nav a').forEach(link => {
+  if (link.textContent.trim() === "Home") {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      cartSection.style.display = "none";
+      booksContainer.style.display = "grid";
+      const wishlistSection = document.getElementById('wishlistSection');
+      if (wishlistSection) wishlistSection.style.display = "none";
+      searchInput.value = "";
+      filterBooks();
+    });
+  }
+});
+
+cartBtn.addEventListener('click', () => {
+  booksContainer.style.display = "none";
+  cartSection.style.display = "block";
+  const wishlistSection = document.getElementById('wishlistSection');
+  if (wishlistSection) wishlistSection.style.display = "none";
+  searchInput.value = "";
+  filterBooks();
+});
+
+// Continue Shopping button
+document.getElementById('continueShoppingBtn').onclick = function() {
+  cartSection.style.display = "none";
+  booksContainer.style.display = "grid";
+  const wishlistSection = document.getElementById('wishlistSection');
+  if (wishlistSection) wishlistSection.style.display = "none";
+  searchInput.value = "";
+  filterBooks();
+};
+</script>
