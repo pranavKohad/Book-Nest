@@ -1,4 +1,4 @@
-
+// Sample Book Data (can expand later)
 const books = [
   {
     id: 1,
@@ -122,19 +122,16 @@ const books = [
   
 ];
 
+// Initial Setup
+// Track cart as an array of {book, quantity}
 let cart = [];
 
+// Move the following code from index.html to script.js
+
+// Add this near the top with your other variables
 let wishlist = [];
 
-const booksContainer = document.getElementById('booksContainer');
-const cartSection = document.getElementById('cartSection');
-const cartItems = document.getElementById('cartItems');
-const cartCount = document.getElementById('cartCount');
-const totalPrice = document.getElementById('totalPrice');
-const searchInput = document.getElementById('searchInput');
-const genreSelect = document.getElementById('genreSelect');
-
-
+// Render Books with Like (heart) and Wishlist button
 function renderBooks(bookList) {
   booksContainer.innerHTML = "";
   if (bookList.length === 0) {
@@ -156,10 +153,21 @@ function renderBooks(bookList) {
       <button onclick="addToCart(${book.id})">Add to Cart</button>
       <button onclick="addToWishlist(${book.id})" class="wishlist-btn"${isWishlisted ? ' disabled' : ''}>Add to Wishlist</button>
       <button class="like-btn" data-id="${book.id}" style="background:none;border:none;font-size:1.5rem;cursor:pointer;vertical-align:middle;${isWishlisted ? 'color:#e63946;' : ''}">&#10084;</button>
+      <div class="book-desc" style="display:none; margin-top:10px; color:#444; background:#f7f7f7; border-radius:6px; padding:10px;">${book.description}</div>
     `;
     booksContainer.appendChild(card);
   });
 
+  // Description toggle logic
+  document.querySelectorAll('.desc-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const descDiv = this.parentElement.querySelector('.book-desc');
+      descDiv.style.display = descDiv.style.display === "none" ? "block" : "none";
+      this.textContent = descDiv.style.display === "block" ? "Hide Description" : "View Description";
+    });
+  });
+
+  // Like button logic
   document.querySelectorAll('.like-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const bookId = parseInt(this.getAttribute('data-id'));
@@ -173,19 +181,21 @@ function renderBooks(bookList) {
   });
 }
 
+// Show/Hide Cart Section
 const cartBtn = document.getElementById('cartBtn');
 cartBtn.addEventListener('click', () => {
   booksContainer.style.display = "none";
   cartSection.style.display = "block";
 });
 
+// Show books when Home is clicked
 document.querySelectorAll('nav a').forEach(link => {
   if (link.textContent.trim() === "Home") {
     link.addEventListener('click', function(e) {
       e.preventDefault();
       cartSection.style.display = "none";
       booksContainer.style.display = "grid";
-      searchInput.value = ""; 
+      searchInput.value = ""; // Clear search bar when switching section
       filterBooks();
     });
   }
@@ -207,6 +217,7 @@ document.getElementById('continueShoppingBtn').onclick = function() {
   filterBooks();
 };
 
+// Add Book to Cart
 function addToCart(id) {
   const book = books.find(b => b.id === id);
   const cartItem = cart.find(item => item.book.id === id);
@@ -216,10 +227,11 @@ function addToCart(id) {
     cart.push({ book, quantity: 1 });
   }
   updateCart();
- 
+  // Show a quick message after adding
   showAddedMessage(`${book.title} added to cart!`);
 }
 
+// Show a temporary message on the page
 function showAddedMessage(message) {
   let msgDiv = document.getElementById('addedMsg');
   if (!msgDiv) {
@@ -243,11 +255,13 @@ function showAddedMessage(message) {
   }, 1200);
 }
 
+// Remove Book from Cart
 function removeFromCart(id) {
   cart = cart.filter(item => item.book.id !== id);
   updateCart();
 }
 
+// Change Quantity
 function changeQuantity(id, delta) {
   const cartItem = cart.find(item => item.book.id === id);
   if (!cartItem) return;
@@ -259,6 +273,7 @@ function changeQuantity(id, delta) {
   }
 }
 
+// Update Cart Section
 function updateCart() {
   cartItems.innerHTML = "";
   let total = 0;
@@ -283,8 +298,10 @@ function updateCart() {
   cartSection.style.display = cart.length > 0 ? "block" : "none";
 }
 
+// Genre filter logic
 genreSelect.addEventListener('change', filterBooks);
 
+// Update filterBooks to filter by genre and search
 function filterBooks() {
   const genre = genreSelect.value;
   const query = searchInput.value.toLowerCase();
@@ -297,15 +314,16 @@ function filterBooks() {
     filtered = filtered.filter(book =>
       book.title.toLowerCase().includes(query)
     );
-
+    // Clear the search bar after search is performed
     searchInput.value = query + "";
   }
   renderBooks(filtered);
 }
 
+// Update search event to use filterBooks
 searchInput.addEventListener("input", filterBooks);
 
-
+// Checkout
 function checkout() {
   if (cart.length === 0) {
     alert("Your cart is empty!");
@@ -323,13 +341,14 @@ function addToWishlist(id) {
   if (!wishlist.some(item => item.id === id)) {
     wishlist.push(book);
     showAddedMessage(`"${book.title}" added to wishlist!`);
-    renderBooks(document.querySelectorAll('.book-card').length ? books : []); 
-    renderWishlist(); 
+    renderBooks(document.querySelectorAll('.book-card').length ? books : []); // Refresh to disable wishlist/like
+    renderWishlist(); // Update wishlist tab if open
   } else {
     showAddedMessage(`"${book.title}" is already in wishlist!`);
   }
 }
 
+// Wishlist tab logic
 const wishlistBtn = document.getElementById('wishlistBtn');
 wishlistBtn.addEventListener('click', () => {
   booksContainer.style.display = "none";
@@ -339,6 +358,7 @@ wishlistBtn.addEventListener('click', () => {
   filterBooks();
 });
 
+// Show wishlist section
 function showWishlistSection() {
   let wishlistSection = document.getElementById('wishlistSection');
   if (!wishlistSection) {
@@ -359,6 +379,7 @@ function showWishlistSection() {
   renderWishlist();
 }
 
+// Render wishlist books
 function renderWishlist() {
   const wishlistSection = document.getElementById('wishlistSection');
   if (!wishlistSection) return;
@@ -379,17 +400,29 @@ function renderWishlist() {
       <p class="book-author"><strong>Author:</strong> ${book.author}</p>
       <p class="book-price"><strong>Price:</strong> ₹${book.price}</p>
       <button onclick="removeFromWishlist(${book.id})" class="remove-btn" style="background:#dc3545;margin-bottom:10px;">Remove from Wishlist</button>
+      <div class="book-desc" style="display:none; margin-top:10px; color:#444; background:#f7f7f7; border-radius:6px; padding:10px;">${book.description}</div>
     `;
     wishlistSection.appendChild(card);
   });
+
+  // Description toggle logic for wishlist
+  wishlistSection.querySelectorAll('.desc-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const descDiv = this.parentElement.querySelector('.book-desc');
+      descDiv.style.display = descDiv.style.display === "none" ? "block" : "none";
+      this.textContent = descDiv.style.display === "block" ? "Hide Description" : "View Description";
+    });
+  });
 }
 
+// Remove from wishlist
 function removeFromWishlist(id) {
   wishlist = wishlist.filter(book => book.id !== id);
   renderWishlist();
   renderBooks(books);
 }
 
+// Hide wishlist section when switching to Home or Cart
 document.querySelectorAll('nav a').forEach(link => {
   if (link.textContent.trim() === "Home") {
     link.addEventListener('click', function(e) {
@@ -413,6 +446,7 @@ cartBtn.addEventListener('click', () => {
   filterBooks();
 });
 
+// Continue Shopping button
 document.getElementById('continueShoppingBtn').onclick = function() {
   cartSection.style.display = "none";
   booksContainer.style.display = "grid";
@@ -422,4 +456,5 @@ document.getElementById('continueShoppingBtn').onclick = function() {
   filterBooks();
 };
 
+// Initial Load
 renderBooks(books);
